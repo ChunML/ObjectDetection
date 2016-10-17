@@ -21,7 +21,9 @@ contours, hierarchy = cv2.findContours(thresh, cv2.RETR_CCOMP, cv2.CHAIN_APPROX_
 
 new_contours = []
 
-for contour in contours[:]:
+x_out = []
+y_out = []
+for contour in contours:
 	rect = cv2.minAreaRect(contour)
 	box = cv2.cv.BoxPoints(rect)
 	box = np.int0(box)
@@ -43,6 +45,26 @@ for contour in contours[:]:
 				cv2.line(image, tuple(contour[i][0]), tuple(contour[0][0]), (0, 255, 0), 1)
 			else:
 				cv2.line(image, tuple(contour[i][0]), tuple(contour[i + 1][0]), (0, 255, 0), 1)
+
+		y = []
+		x = []
+
+		for i, point in enumerate(contour):
+			y.append(point[0][1])
+			x.append(point[0][0])
+		i_max= np.argmax(y)
+		x_out.append([value for i, value in enumerate(x) if y[i] == y[i_max]])
+		y_out.append(y[i_max])
+
+x_left = [value for i, value in enumerate(x_out) if all(temp < 400 for temp in x_out[i])]
+y_left = [value for i, value in enumerate(y_out) if all(temp < 400 for temp in x_out[i])]
+print(x_left)
+print(y_left)
+
+x_right = [value for i, value in enumerate(x_out) if all(temp >= 400 for temp in x_out[i])]
+y_right = [value for i, value in enumerate(y_out) if all(temp >= 400 for temp in x_out[i])]
+print(x_right)
+print(y_right)
 
 thresh = np.zeros(thresh.shape)
 cv2.drawContours(thresh, new_contours, -1, 255, 1)
