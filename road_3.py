@@ -17,15 +17,17 @@ thresh = cv2.dilate(thresh, kernel, iterations=2)
 cv2.imshow('thresh', thresh)
 cv2.waitKey(0)
 
-contours, hierarchy = cv2.findContours(thresh, cv2.RETR_CCOMP, cv2.CHAIN_APPROX_NONE)
+_, contours, _ = cv2.findContours(thresh, cv2.RETR_CCOMP, cv2.CHAIN_APPROX_NONE)
 
 new_contours = []
 
+x_lane = []
+y_lane = []
 x_out = []
 y_out = []
 for contour in contours:
 	rect = cv2.minAreaRect(contour)
-	box = cv2.cv.BoxPoints(rect)
+	box = cv2.boxPoints(rect)
 	box = np.int0(box)
 	width = np.sqrt((box[0][0] - box[1][0]) ** 2 + (box[0][1] - box[1][1]) ** 2)
 	height = np.sqrt((box[1][0] - box[2][0]) ** 2 + (box[1][1] - box[2][1]) ** 2)
@@ -42,33 +44,50 @@ for contour in contours:
 		for i, point in enumerate(contour):
 				
 			if i == len(contour) - 1:
-				cv2.line(image, tuple(contour[i][0]), tuple(contour[0][0]), (0, 255, 0), 1)
+				cv2.line(image, tuple(contour[i][0]), tuple(contour[0][0]), (0, 255, 0), 2)
 			else:
-				cv2.line(image, tuple(contour[i][0]), tuple(contour[i + 1][0]), (0, 255, 0), 1)
+				cv2.line(image, tuple(contour[i][0]), tuple(contour[i + 1][0]), (0, 255, 0), 2)
 
 		y = []
 		x = []
-
 		for i, point in enumerate(contour):
 			y.append(point[0][1])
 			x.append(point[0][0])
-		i_max= np.argmax(y)
+		x_lane.append(x)
+                y_lane.append(y)
+                i_max= np.argmax(y)
 		x_out.append([value for i, value in enumerate(x) if y[i] == y[i_max]])
 		y_out.append(y[i_max])
 
+#print(x_lane)
+print(y_out)
+
 x_left = [value for i, value in enumerate(x_out) if all(temp < 400 for temp in x_out[i])]
 y_left = [value for i, value in enumerate(y_out) if all(temp < 400 for temp in x_out[i])]
+i_left = [i for i, value in enumerate(x_out) if all(temp < 400 for temp in x_out[i])]
+x_left = [value for i, value in enumerate(x_left) if y_left[i] == y_left[np.argmax(y_left)]]
+i_left = i_left[np.argmax(y_left)]
+y_left = y_left[np.argmax(y_left)]
 print(x_left)
 print(y_left)
-
+print(i_left)
 x_right = [value for i, value in enumerate(x_out) if all(temp >= 400 for temp in x_out[i])]
 y_right = [value for i, value in enumerate(y_out) if all(temp >= 400 for temp in x_out[i])]
+i_right = [i for i, value in enumerate(x_out) if all(temp >= 400 for temp in x_out[i])]
+x_right = [value for i, value in enumerate(x_right) if y_right[i] == y_right[np.argmax(y_right)]]
+i_right = i_right[np.argmax(y_right)]
+y_right = y_right[np.argmax(y_right)]
 print(x_right)
 print(y_right)
+print(i_right)
 
 detected_object_boxes = np.loadtxt('array.txt')
 for box in detected_object_boxes:
-    cv2.rectangle(image, (box[0], box[1]), (box[0] + box[2], box[1] + box[3]), (0, 0, 255), 1)
+    x_left = [value for i, value in enumerate(x_lane[i_left]) if y_lane[i_left][i] == int(box[3])]
+    x_right = [value for i, value in enumerate(x_lane[i_right]) if y_lane[i_right][i] == int(box[3])]
+    print(x_left)
+    print(x_right)
+    cv2.rectangle(image, (int(box[0]), int(box[1])), (int(box[2]), int(box[3])), (0, 0, 255), 2)
 
 thresh = np.zeros(thresh.shape)
 cv2.drawContours(thresh, new_contours, -1, 255, 1)
