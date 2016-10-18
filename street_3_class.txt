@@ -1,0 +1,8 @@
+bus
+car
+car
+car
+person
+person
+person
+person

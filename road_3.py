@@ -54,8 +54,8 @@ for contour in contours:
 			y.append(point[0][1])
 			x.append(point[0][0])
 		x_lane.append(x)
-                y_lane.append(y)
-                i_max= np.argmax(y)
+		y_lane.append(y)
+		i_max= np.argmax(y)
 		x_out.append([value for i, value in enumerate(x) if y[i] == y[i_max]])
 		y_out.append(y[i_max])
 
